@@ -17,7 +17,7 @@ This notebook is meant to help you get ready for Monday's session.  On Monday, w
 
   - GitHub Pull Requests & Protected Branches to do GitHub Flow
   - GitHub Remotes & Continuous Integration with GitHub Actions
-  - Commits with Git & using pre-commit to format and lint code with  nbqa and ruff
+  - Commits with Git & using pre-commit to format and lint code with  nbqa and ruff 
 
 The sections below have information on how to get a common computational environment set up for the session, and which commands and procedures would be helpful to be familiar with before coming to the session, to get the most out the unit.  The commands below are terminal commands--if you are familiar with how to do the same tasks using the `VSCode` graphical interface, that is also totally fine for our purposes.
 
@@ -27,10 +27,10 @@ The sections below have information on how to get a common computational environ
 Make sure you can log in to these online services:
 
 - [ ] [`GitHub`](https://github.com/):
-    - Note: The `GitHub` username and email does *not* have to match your `git` username and email.
+    - Note: The `GitHub` username and email does *not* have to match your `git` username and email.  
 
 Make sure these programs are installed:
-
+  
   - [ ] [git](https://git-scm.com/downloads)
     1. Test the Installation works in the terminal: `git -v`
     2.  Confirm your name is set for commits: `git config user.name`
@@ -63,7 +63,7 @@ To prepare for the session, please look through each of the sections below and c
 
 ###  Skills Checklist
 
-Read through each of the following statements about proficience around a given technical task.  For any of the technical tasks listed below that you're not confident with, please do the onboarding exercises in the sections below, as part of preparation for the workshop session.
+Read through each of the following statements about proficience around a given technical task.  For any of the technical tasks listed below that you're not confident with, please do the onboarding exercises in the sections below, as part of preparation for the workshop session. 
 
   - [ ] I can start a new git project.
   - [ ] I can make commits for sets of files I've changed.
@@ -92,7 +92,7 @@ Read through each of the following statements about proficience around a given t
 **Try it Out**:
 
 a. Make a fresh project with some history:
-  1. Make a new directory and turn it into a git repository.
+  1. Make a new directory and turn it into a git repository.  
   2. Add a new file with some "Hello" text and and commit it.
   3. Add the line "Bye" to the text file and commit that change.  Check the diff log to see that git noticed that "bye" was added.
   4. Add a second file called "numbers.txt" and commit it.
@@ -121,18 +121,18 @@ a. Make a fresh project with some history:
 
 b. Play with the history of the project.
   1. Rewind back to the first commit using "checkout", then go back to the latest commit. (note: the log will help identify the commit hash)
-  2. Do a revert to make the project look like it did at the first commit.
+  2. Do a revert to make the project look like it did at the first commit. 
   3. Rewind back to the previous commit to see that the history hasn't been lost--the second file that was created is still in the history, it just got deleted again.
   4. Change the history by doing a `hard reset`: bring it back to the state at the first commit.  Verify that thie history is now lost--there is really only one commit now.  Whoops!
 
 ---
-
+  
 
 ## 2. Branched Version Control with `git`
 
 ### Skills Checklist
 
-Read through each of the following statements about proficience around a given technical task.  For any of the technical tasks listed below that you're not confident with, please do the onboarding exercises in the sections below, as part of preparation for the workshop session.
+Read through each of the following statements about proficience around a given technical task.  For any of the technical tasks listed below that you're not confident with, please do the onboarding exercises in the sections below, as part of preparation for the workshop session. 
 
   - [ ] I can check the name of the current git branch I'm on, and see the names of the branches in the repo.
   - [ ] I can make new git branches, in order to experiment with a new feature or develop something new.
@@ -168,7 +168,7 @@ c. Make some new branches on an existing repo (check section above if you need t
   6. Merge the new branch into the previous branch.  Now `snake.py` is in both branches!
   7. Delete the `new branch`--it's done its job.
 
-
+    
 
 ---
 
@@ -176,7 +176,7 @@ c. Make some new branches on an existing repo (check section above if you need t
 
 ### Skills Checklist
 
-Read through each of the following statements about proficience around a given technical task.  For any of the technical tasks listed below that you're not confident with, please do the onboarding exercises in the sections below, as part of preparation for the workshop session.
+Read through each of the following statements about proficience around a given technical task.  For any of the technical tasks listed below that you're not confident with, please do the onboarding exercises in the sections below, as part of preparation for the workshop session. 
 
   - [ ] I can clone an existing `GitHub` repo to my local computer and build onto the `git` commit history.
   - [ ] I can fetch the latest info about branches and commits from `GitHub` to my local `git` repo.
@@ -207,8 +207,8 @@ Read through each of the following statements about proficience around a given t
   5. Push the committed change to the remote repo, and refresh the webpage to see the changes.
   6. Use the "edit" feature in the web page to modify the Readme file in the Github website and make the commit using your web browser.
   7. Pull the remote change down to your local repo.
-
-
+  
+  
 
 
 
