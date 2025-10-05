@@ -1,0 +1,87 @@
+
+hero: 
+  enable: false
+  weight: 100
+  template: hero
+
+hero2: 
+  enable: true
+  weight: 100
+  template: hero
+  title: Scientific Software Development Training Series
+  subtitle: A practical training series for research software developers on developing, automating, and sustaining high-performance scientific Python projects.
+  info: |
+    **Open Source** MIT Licensed.\
+        Developed for the [Piraud Hemholtz AI Team](https://www.helmholtz.ai/applied-ai/ai-consultancy-teams/piraud-team/) by [Nicholas A. Del Grosso, PhD](https://www.linkedin.com/in/nick-del-grosso/)
+  backgroundImage: # 4
+        path: "images/templates/hero"
+        filename:
+            desktop: "gradient-desktop.webp"
+            mobile: "gradient-mobile.webp"
+  image: # 5
+        path: "images"
+        filename: "hero_mosaic_med.png"
+        alt: "Lotus Docs Screenshot" # Optional but recommended
+        boxShadow: true # default 'false' (excludes .svg images)
+        rounded: true # round the image corners? default 'false' (excludes .svg images
+  ctaButton:
+        icon: rocket_launch
+        btnText: "Get Started"
+        url: "/docs"
+  # cta2Button:
+  #     icon: construction
+  #     btnText: "In Development"
+  #     url: "https://github.com/colinwilson/lotusdocs"
+  badge:
+        text: v0.1.0
+        color: primary
+        pill: false
+        soft: true
+
+
+
+
+featureGrid:
+  enable: false
+  weight: 1000
+  template: feature grid
+
+imageText:
+  enable: false
+  weight: 20
+  template: image text
+
+imageCompare:
+  enable: false
+  weight: 59
+  template: image compare
+
+
+
+topics:
+  enable: true
+  weight: 300
+  template: feature grid
+  title: "Training Session Topics"
+  subtitle: ""
+  items:
+    - title: "Git & GitHub in Teams"
+      icon: person
+      description: "Commits, Pull Requests, Actions, Issues, Project Boards."
+    - title: "Testing & Quality"
+      icon: check_circle
+      description: "Pytest, coverage, integration testing, reproducibility."
+    - title: "Performance"
+      icon: speed
+      description: "NumPy, Numba, JAX, profiling, async data pipelines."
+    - title: "Containers"
+      icon: box
+      description: "Apptainer, Docker, Devcontainers for HPC & cloud."
+    - title: "Workflow Management"
+      icon: workflow
+      description: "Data pipelines with Nextflow, Snakemake, DVC, MLFlow."
+    - title: "Robust Coding"
+      icon: checklist
+      description: "Validation, type checking, architecture, OOP."
+
+

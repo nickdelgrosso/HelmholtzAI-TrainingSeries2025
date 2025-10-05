@@ -1,0 +1,20 @@
+[workspace]
+authors = ["Nicholas A. Del Grosso <delgrosso.nick@gmail.com>"]
+channels = ["conda-forge"]
+name = "hhai-repo"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+convert = {cmd = "python scripts/notebooks_to_site.py", description = "Convert ipynb notebook to hugo-site compatible markdown content"}
+
+
+[dependencies]
+hugo = ">=0.151.0,<0.152"
+go = ">=1.25.1,<2"
+python = "3.12.*"
+pip = ">=25.2,<26"
+
+[pypi-dependencies]
+ipykernel = ">=6.30.1, <7"
+watchdog = ">=6.0.0, <7"
