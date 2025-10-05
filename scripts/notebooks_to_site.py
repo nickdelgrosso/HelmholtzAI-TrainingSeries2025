@@ -28,7 +28,9 @@ import re
 src = Path("notebooks")
 dst = Path("site/content/docs")
 
-ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')  # for getting rid of ansi color codes in error tracebacks
+ansi_escape = re.compile(
+    r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])"
+)  # for getting rid of ansi color codes in error tracebacks
 
 
 for nb_path in src.rglob("*.ipynb"):
@@ -41,23 +43,23 @@ for nb_path in src.rglob("*.ipynb"):
 
     out_sections = []
 
-    for cell in data['cells']:
-        match cell['cell_type']:
+    for cell in data["cells"]:
+        match cell["cell_type"]:
             case "raw":
-                out = ''.join(cell['source'])
+                out = "".join(cell["source"])
                 out_sections.append(out)
 
             case "markdown":
-                source = cell['source']
-                out_sections.append(''.join(source))
+                source = cell["source"]
+                out_sections.append("".join(source))
 
             case "code":
-                source = cell['source']
-                language = data['metadata']['kernelspec']['language']
+                source = cell["source"]
+                language = data["metadata"]["kernelspec"]["language"]
                 source_text = f"```{language}\n{''.join(s for s in source)}\n```"
                 out_sections.append(source_text)
-                for output in cell['outputs']:
-                    match output['output_type']:
+                for output in cell["outputs"]:
+                    match output["output_type"]:
                         case "execute_result":
                             out = f"```\n{''.join(output['data']['text/plain'])}\n```"
                             out_sections.append(out)
@@ -68,15 +70,12 @@ for nb_path in src.rglob("*.ipynb"):
                             print(f"Output Type Not Implemeneted: {other}")
 
             case other:
-                print(f'Not yet implemented cell type: {other}')
-
-
+                print(f"Not yet implemented cell type: {other}")
 
     # Fix Page Bundle Indices
-    if rel.stem == 'index':
-        rel = rel.with_stem('_index')
-
+    if rel.stem == "index":
+        rel = rel.with_stem("_index")
 
     out_md = outdir / rel.with_suffix(".md").name
     print(out_md)
-    out_md.write_text('\n\n'.join(out_sections))
+    out_md.write_text("\n\n".join(out_sections))

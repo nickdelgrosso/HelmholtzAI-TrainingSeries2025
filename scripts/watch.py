@@ -3,6 +3,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+
 class RunOnChangeHandler(FileSystemEventHandler):
     def on_any_event(self, event):
         # Ignore directory metadata changes
@@ -10,6 +11,7 @@ class RunOnChangeHandler(FileSystemEventHandler):
             return
         print(f"Change detected: {event.src_path}")
         subprocess.run(["python", "scripts/notebooks_to_site.py"], check=False)
+
 
 if __name__ == "__main__":
     path_to_watch = "./notebooks"
