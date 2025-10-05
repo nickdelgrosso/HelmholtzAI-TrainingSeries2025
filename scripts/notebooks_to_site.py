@@ -26,7 +26,7 @@ import re
 
 
 src = Path("notebooks")
-dst = Path("site/content")
+dst = Path("site/content/docs")
 
 ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')  # for getting rid of ansi color codes in error tracebacks
 
