@@ -21,9 +21,8 @@ Todo:
 """
 
 import json
-from pathlib import Path
 import re
-
+from pathlib import Path
 
 src = Path("notebooks")
 dst = Path("site/content/docs")

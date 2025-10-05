@@ -1,4 +1,3 @@
-// Preferences: Open Workspace Settings (JSON)
 {
     "files.exclude": {
         "**/.git": false
