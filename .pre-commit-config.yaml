@@ -29,7 +29,15 @@ repos:
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.9.1
     hooks:
-      - id: nbqa-black
-        additional_dependencies: [black==24.4.2]
+      # - id: nbqa-black
+      #   additional_dependencies: [black==24.4.2]
+      #   args: ["--settings-path=pyproject.toml"]
       - id: nbqa-isort
         additional_dependencies: [isort==5.13.2]
+        args: ["--settings-path=pyproject.toml"]
+
+  # # Keep notebooks clean of outputs
+  # - repo: https://github.com/kynan/nbstripout
+  #   rev: 0.7.1
+  #   hooks:
+  #     - id: nbstripout

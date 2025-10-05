@@ -33,19 +33,19 @@ The series runs across 8 sessions. Each session includes a mixture of **concepts
 
 Each workshop is carefully structured to maximize both learning and application:
 
-1. **Pre-workshop materials**  
-   - Participants receive short readings, tutorials, or coding exercises to **onboard** and **review fundamentals**.  
-   - A dedicated **GitHub Discussions forum** provides space for questions and answers before the live session.  
+1. **Pre-workshop materials**
+   - Participants receive short readings, tutorials, or coding exercises to **onboard** and **review fundamentals**.
+   - A dedicated **GitHub Discussions forum** provides space for questions and answers before the live session.
 
-2. **Workshop session**  
-   - Live, interactive session focused on **group problem solving**.  
-   - Includes both **toy examples** (to learn concepts in a safe sandbox) and **applied breakouts** using real projects contributed by participants.  
+2. **Workshop session**
+   - Live, interactive session focused on **group problem solving**.
+   - Includes both **toy examples** (to learn concepts in a safe sandbox) and **applied breakouts** using real projects contributed by participants.
 
-3. **Follow-up and consulting**  
-   - After each session, I am available for **one-on-one or small group consulting**, helping participants apply the practices to their **own consulting projects**.  
+3. **Follow-up and consulting**
+   - After each session, I am available for **one-on-one or small group consulting**, helping participants apply the practices to their **own consulting projects**.
 
-4. **Team reflection and planning**  
-   - The Helmholtz AI consulting team meets to **reflect** on the past session, and to discuss how to **steer the direction** of the training series for upcoming sessions.  
+4. **Team reflection and planning**
+   - The Helmholtz AI consulting team meets to **reflect** on the past session, and to discuss how to **steer the direction** of the training series for upcoming sessions.
 
 ---
 
@@ -53,8 +53,8 @@ Each workshop is carefully structured to maximize both learning and application:
 
 Building scientific machine learning applications is not only about models and data. For consultants working on short-term projects, **the way you build your code matters as much as what it does**. By strengthening your skills in collaborative development, testing, reproducibility, and project design, you will:
 
-- Deliver **higher quality solutions** to collaborators.  
-- Make your work easier to **hand over and sustain** after the consulting period ends.  
-- Build skills that will continue to pay off throughout your career, regardless of domain.  
+- Deliver **higher quality solutions** to collaborators.
+- Make your work easier to **hand over and sustain** after the consulting period ends.
+- Build skills that will continue to pay off throughout your career, regardless of domain.
 
-This series is about **raising the baseline of scientific software development** — so that every project you work on is not just effective in the short term, but also **maintainable, scalable, and reproducible** in the long run.  
+This series is about **raising the baseline of scientific software development** — so that every project you work on is not just effective in the short term, but also **maintainable, scalable, and reproducible** in the long run.

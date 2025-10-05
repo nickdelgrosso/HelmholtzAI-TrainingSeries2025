@@ -7,6 +7,13 @@ draft: false
 toc: true
 ---
 
+```python
+import json
+import os
+
+import numpy
+```
+
 ## Overview
 
 Today, we're be jumping into some of the aspects of `Git` and `GitHub` related to automated code quality checking and collaboration, both in toy examples and in real projects from your team:
