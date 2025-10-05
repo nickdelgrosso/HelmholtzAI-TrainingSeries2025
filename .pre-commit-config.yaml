@@ -25,16 +25,23 @@ repos:
       - id: isort
         language_version: python3
 
-  # Notebook formatting (auto-fix)
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.9.1
+  # Linting (flake8)
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
     hooks:
-      # - id: nbqa-black
-      #   additional_dependencies: [black==24.4.2]
-      #   args: ["--settings-path=pyproject.toml"]
-      - id: nbqa-isort
-        additional_dependencies: [isort==5.13.2]
-        args: ["--settings-path=pyproject.toml"]
+      - id: flake8
+        additional_dependencies: [flake8-bugbear]  # nice set of extra checks
+
+  # Notebook formatting (auto-fix)
+  # - repo: https://github.com/nbQA-dev/nbQA
+  #   rev: 1.9.1
+  #   hooks:
+  #     # - id: nbqa-black
+  #     #   additional_dependencies: [black==24.4.2]
+  #     #   args: ["--settings-path=pyproject.toml"]
+  #     - id: nbqa-isort
+  #       additional_dependencies: [isort==5.13.2]
+  #       args: ["--settings-path=pyproject.toml"]
 
   # # Keep notebooks clean of outputs
   # - repo: https://github.com/kynan/nbstripout
