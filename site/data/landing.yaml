@@ -27,7 +27,7 @@ hero2:
   ctaButton:
         icon: rocket_launch
         btnText: "Get Started"
-        url: "/docs"
+        url: "docs"
   # cta2Button:
   #     icon: construction
   #     btnText: "In Development"
