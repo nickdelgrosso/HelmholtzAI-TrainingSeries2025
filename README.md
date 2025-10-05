@@ -1,5 +1,7 @@
 # Helmholtz AI Workshop Series
 
+https://nickdelgrosso.github.io/HelmholtzAI-TrainingSeries2025/
+
 A collaborative training program on scientific software development practices for early-career professionals working on machine learning consulting projects.
 
 ## Overview
