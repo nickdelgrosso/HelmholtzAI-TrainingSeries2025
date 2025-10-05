@@ -7,7 +7,7 @@ version = "0.1.0"
 
 [tasks]
 convert = {cmd = "python scripts/notebooks_to_site.py", description = "Convert ipynb notebook to hugo-site compatible markdown content"}
-
+serve = {cmd = "hugo server --buildDrafts", cwd = "site", description = "Start a web server for the Hugo site."}
 
 [dependencies]
 hugo = ">=0.151.0,<0.152"
