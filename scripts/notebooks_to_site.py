@@ -22,7 +22,7 @@ Todo:
 
 import json
 from pathlib import Path
-import re 
+import re
 
 
 src = Path("notebooks")
@@ -40,7 +40,7 @@ for nb_path in src.rglob("*.ipynb"):
     data = json.loads(nb_path.read_text())
 
     out_sections = []
-    
+
     for cell in data['cells']:
         match cell['cell_type']:
             case "raw":
@@ -63,23 +63,20 @@ for nb_path in src.rglob("*.ipynb"):
                             out_sections.append(out)
                         case "error":
                             out = f"```\n{''.join(ansi_escape.sub('', o) + '\n' for o in output['traceback'])}\n```"
-                            out_sections.append(out)     
+                            out_sections.append(out)
                         case other:
-                            print(f"Output Type Not Implemeneted: {other}")                       
+                            print(f"Output Type Not Implemeneted: {other}")
 
             case other:
                 print(f'Not yet implemented cell type: {other}')
-    
 
-    
+
+
     # Fix Page Bundle Indices
     if rel.stem == 'index':
         rel = rel.with_stem('_index')
 
-    
+
     out_md = outdir / rel.with_suffix(".md").name
     print(out_md)
     out_md.write_text('\n\n'.join(out_sections))
-    
-   
-    

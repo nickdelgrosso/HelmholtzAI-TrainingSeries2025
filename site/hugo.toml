@@ -34,5 +34,3 @@ scrollSpy = true
 intLinkTooltip = false
 extLinkNewTab = true
 # logoLinkURL = true  # can be a string, a custom url
-
-

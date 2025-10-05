@@ -1,10 +1,10 @@
 
-hero: 
+hero:
   enable: false
   weight: 100
   template: hero
 
-hero2: 
+hero2:
   enable: true
   weight: 100
   template: hero
@@ -83,5 +83,3 @@ topics:
     - title: "Robust Coding"
       icon: checklist
       description: "Validation, type checking, architecture, OOP."
-
-
