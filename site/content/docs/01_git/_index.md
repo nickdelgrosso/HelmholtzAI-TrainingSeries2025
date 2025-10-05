@@ -1,24 +1,16 @@
 ---
 weight: 100
-title: "first"
+title: "1. Git/GitHub: Automation and Collaboration"
 description: "this is adfaf afdsaf"
 icon: "article"
 draft: false
 toc: true
 ---
 
-Done!
+## Overview
 
-```python
-1 + 2
-a = 3
-1 + a
-```
+Today, we're be jumping into some of the aspects of `Git` and `GitHub` related to automated code quality checking and collaboration, both in toy examples and in real projects from your team:
 
-```
-4
-```
-
-```python
-
-```
+  - GitHub Pull Requests & Protected Branches to do Trunk-Based Development
+  - GitHub Remotes & Continuous Integration with GitHub Actions
+  - Commits with Git & using pre-commit to format and lint code with  nbqa and ruff
