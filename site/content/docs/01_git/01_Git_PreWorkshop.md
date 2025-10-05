@@ -1,5 +1,5 @@
 ---
-weight: 100
+weight: 110
 title: "Git Pre-Workshop"
 description: "this is adfaf afdsaf"
 icon: "article"
