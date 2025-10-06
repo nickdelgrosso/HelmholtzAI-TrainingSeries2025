@@ -1,0 +1,132 @@
+{{ define "main" }}
+
+<div class="container py-4">
+    {{ if .Content }}
+    <div class="prose mb-5">
+        {{ .Content }}
+    </div>
+    {{ end }}
+
+    {{ $trainer := where .Pages ".Params.role" "eq" "Trainer" }}
+    {{ $participantsIntro := where .Pages ".Params.role" "eq" "ParticipantsIntro" }}
+    {{ $participants := where .Pages ".Params.role" "not in" (slice "Trainer" "ParticipantsIntro") }}
+
+    {{ if $trainer }}
+    <section class="mb-5">
+        <h2 class="mb-4">Meet the Trainer</h2>
+
+        {{ range $trainer }}
+        <div class="prose mb-4">
+            {{ .Content }}
+        </div>
+        {{ end }}
+
+        <div class="row g-4">
+            {{ range $trainer }}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    {{ if .Params.image }}
+                    {{ $image := resources.Get .Params.image }}
+                    {{ if $image }}
+                    <img src="{{ $image.RelPermalink }}" class="card-img-top" alt="{{ .Params.name | default .Title }}" style="height: 300px; object-fit: cover;">
+                    {{ else }}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                        <i class="material-icons" style="font-size: 80px; color: #ccc;">person</i>
+                    </div>
+                    {{ end }}
+                    {{ else }}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                        <i class="material-icons" style="font-size: 80px; color: #ccc;">person</i>
+                    </div>
+                    {{ end }}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ .Params.name | default .Title }}</h5>
+                        {{ if .Params.affiliation }}<p class="text-muted mb-2"><small>{{ .Params.affiliation }}</small></p>{{ end }}
+                        {{ if .Params.bio }}<p class="card-text">{{ .Content }}</p>{{ end }}
+
+                        <div class="d-flex gap-2 mt-3">
+                            {{ if .Params.website }}
+                            <a href="{{ .Params.website }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" title="Website">
+                                <i class="material-icons" style="font-size: 16px;">language</i>
+                            </a>
+                            {{ end }}
+                            {{ if .Params.github }}
+                            <a href="https://github.com/{{ .Params.github }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" title="GitHub">
+                                <i class="material-icons" style="font-size: 16px;">code</i>
+                            </a>
+                            {{ end }}
+                            {{ if .Params.linkedin }}
+                            <a href="https://linkedin.com/in/{{ .Params.linkedin }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" title="LinkedIn">
+                                <i class="material-icons" style="font-size: 16px;">business</i>
+                            </a>
+                            {{ end }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </section>
+    {{ end }}
+
+    {{ if or $participants $participantsIntro }}
+    <section>
+        <h2 class="mb-4">Workshop Participants</h2>
+
+        {{ range $participantsIntro }}
+        <div class="prose mb-4">
+            {{ .Content }}
+        </div>
+        {{ end }}
+
+        <div class="row g-4">
+            {{ range $participants.ByTitle }}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    {{ if .Params.image }}
+                    {{ $image := resources.Get .Params.image }}
+                    {{ if $image }}
+                    <img src="{{ $image.RelPermalink }}" class="card-img-top" alt="{{ .Params.name | default .Title }}" style="height: 300px; object-fit: cover;">
+                    {{ else }}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                        <i class="material-icons" style="font-size: 80px; color: #ccc;">person</i>
+                    </div>
+                    {{ end }}
+                    {{ else }}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                        <i class="material-icons" style="font-size: 80px; color: #ccc;">person</i>
+                    </div>
+                    {{ end }}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ .Params.name | default .Title }}</h5>
+                        {{ if .Params.role }}<p class="text-muted mb-1"><small>{{ .Params.role }}</small></p>{{ end }}
+                        {{ if .Params.affiliation }}<p class="text-muted mb-2"><small>{{ .Params.affiliation }}</small></p>{{ end }}
+                        {{ if .Content }}<p class="card-text">{{ .Content }}</p>{{ end }}
+
+                        <div class="d-flex gap-2 mt-3">
+                            {{ if .Params.website }}
+                            <a href="{{ .Params.website }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" title="Website">
+                                <i class="material-icons" style="font-size: 16px;">language</i>
+                            </a>
+                            {{ end }}
+                            {{ if .Params.github }}
+                            <a href="https://github.com/{{ .Params.github }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" title="GitHub">
+                                <i class="material-icons" style="font-size: 16px;">code</i>
+                            </a>
+                            {{ end }}
+                            {{ if .Params.linkedin }}
+                            <a href="https://linkedin.com/in/{{ .Params.linkedin }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" title="LinkedIn">
+                                <i class="material-icons" style="font-size: 16px;">business</i>
+                            </a>
+                            {{ end }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </section>
+    {{ end }}
+</div>
+
+{{ end }}

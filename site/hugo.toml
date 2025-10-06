@@ -2,6 +2,16 @@ baseURL = 'http://example.org/'
 languageCode = 'en-us'
 title = 'HelmholtzAI Training Series 2025'
 
+[[menu.primary]]
+name = "About"
+url = "/about/"
+weight = 10
+
+[[menu.primary]]
+name = "Docs"
+url = "/docs/"
+weight = 20
+
 
 
 
