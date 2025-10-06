@@ -4,7 +4,6 @@ draft = false
 name = ''
 affiliation = ''
 role = ''
-bio = ''
 image = ''
 website = ''
 github = ''
