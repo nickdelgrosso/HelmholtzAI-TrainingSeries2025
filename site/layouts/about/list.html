@@ -13,6 +13,13 @@
     {{ if $trainer }}
     <section class="mb-5">
         <h2 class="mb-4">Meet the Trainer</h2>
+
+        {{ range $trainer }}
+        <div class="prose mb-4">
+            {{ .Content }}
+        </div>
+        {{ end }}
+
         <div class="row g-4">
             {{ range $trainer }}
             <div class="col-md-6 col-lg-4">
