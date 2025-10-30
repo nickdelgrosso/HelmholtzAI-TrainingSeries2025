@@ -18,7 +18,6 @@ Each workshop session includes:
 
 ## Technologies
 
-- **Hugo** - Static site generator using the LotusDocs theme
 - **Pixi** - Cross-platform package and environment manager
 - **Python** - Notebook processing and automation
 - **Jupyter** - Interactive notebook materials
