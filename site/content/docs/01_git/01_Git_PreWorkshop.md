@@ -11,7 +11,9 @@ toc: true
 
 by Nicholas Del Grosso, October 1st, 2025
 
-## Pre-Workshop Materials: Getting Started
+## Pre-Workshop Materials: Getting Started Today!!
+
+afdaf
 
 This notebook is meant to help you get ready for Monday's session.  On Monday, we'll be jumping into some of the aspects of `Git` and `GitHub` related to automated code quality checking and collaboration, both in toy examples and in real projects from your team:
 
