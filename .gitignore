@@ -1,5 +1,4 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
-site/assets/jsconfig.json
 .hypothesis
