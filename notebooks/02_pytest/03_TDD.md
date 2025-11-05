@@ -6,7 +6,7 @@
 
 ### Option 1. Add automated tests to one of your own projects.
 
-
+ thi
 
 ### Option 2. Do the DNA Transcription Kata with your partner, following Test-Driven-Development practices
 

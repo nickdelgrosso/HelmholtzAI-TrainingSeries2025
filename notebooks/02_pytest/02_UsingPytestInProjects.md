@@ -27,6 +27,8 @@
     
 Reference: [Reference_Standard_Project_Organization.ipynb](Reference_Standard_Project_Organization.ipynb)
 
+`UV` also does a fantastic job getting things set up correctly from the beginning: https://docs.astral.sh/uv/getting-started/features/#python-versions
+
 
 
 ### 2. Connect the Folders using the `pyproject.toml` packaging format:
