@@ -14,9 +14,9 @@ This round, we'll familiarize ourselves with the `pytest` Python package and the
 | Minutes | Activity | Requirements |
 | :-- | :-- | :-- |
 | 0 - 30 | Review the Pre-Workshop Exercises, Discuss Automated Testing |  *Complete this Notebook before the Course* |
-| 30 - 100 | Breakout Rooms: Test-Driven Development Exercise | *Be Familiar with PyTest* |
+| 30 - 100 | Breakout Rooms: Integrating Automated Tests in Projects | *Be Familiar with PyTest* |
 | 100 - 110 | Break | --- |
-| 110 - 190 | Breakout Rooms: Add Tests to Own Projects | *Have Your Project in GitHub, and an Idea of Something to Check* |
+| 110 - 190 | Breakout Rooms: "Test-Driven Development Exercise" or "Add Tests to Own Projects" | *Have Your Project in GitHub, and an Idea of Something to Check* |
 | 190 - 210 | Mini-Retrospective | --- |
 
 ## Questions and Discussions
