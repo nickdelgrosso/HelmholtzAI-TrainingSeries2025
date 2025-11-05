@@ -26,3 +26,10 @@ Repository to Clone: https://github.com/nickdelgrosso/dna-transcription-kata
 Reference Slides 18-25 in [Reference_TestDrivenDevelopment_PairProgramming.pdf](Reference_TestDrivenDevelopment_PairProgramming.pdf) for examples of how this goes in practice. 
 
 Note: This is often a tricky practice to learn, so don't worry if your group abandons it and instead finds yourselves writing "source code, then test".  The key here is to get used to thinking about the source code from two sides as part of development--the **implementation** (what's inside the function), and the **interface** (what the code calling it sees).
+
+Stuck on how to start?  Here's a simple first test that might get the group moving:
+
+```python
+def test_transcribe_single_adenine_to_uracil():
+    assert transcribe_rna("A") == "U"
+```
