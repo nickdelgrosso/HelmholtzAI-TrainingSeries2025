@@ -19,3 +19,9 @@ This round, we'll familiarize ourselves with the `pytest` Python package and the
 | 110 - 190 | Breakout Rooms: Add Tests to Own Projects | *Have Your Project in GitHub, and an Idea of Something to Check* |
 | 190 - 210 | Mini-Retrospective | --- |
 
+## Questions and Discussions
+
+  - Want to discuss testing in a forum?  Head over to the [GitHub Discussions Category](https://github.com/nickdelgrosso/HelmholtzAI-TrainingSeries2025/discussions/categories/02-pre-workshop-test-automation)!
+
+  - Want to discuss more in-depth, or are stuck?  Email Nicholas!
+
