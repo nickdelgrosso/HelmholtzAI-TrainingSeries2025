@@ -1,10 +1,11 @@
 
 
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import math
 import os
 import time
-from uuid import uuid4
 from types import SimpleNamespace
+from uuid import uuid4
 
 
 import numpy as np
@@ -46,7 +47,7 @@ class Executors(SimpleNamespace):
     def multiprocess(task, n_batches, n_items):
         "Using Multiprocessing."
         host_cpu_start_time = time.process_time()
-        with ProcessPoolExecutor(max_workers=8) as ex:
+        with ProcessPoolExecutor(max_workers=4) as ex:
             cpu_times = list(ex.map(task, [n_items] * n_batches ))  # Need the individual process times.
 
         host_cpu_time = time.process_time() - host_cpu_start_time
@@ -61,7 +62,7 @@ class Tasks(SimpleNamespace):
         start_cpu = time.process_time()
         x = 0
         for i in range(n):
-            x += i * 10 + 5.2
+            x += math.sqrt(i * 10 + 5.2)
         return time.process_time() - start_cpu
 
     @staticmethod
@@ -94,9 +95,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     tasks = {
-        'cpu':   (Tasks.cpu_task,   dict(n_batches=8, n_items=3_000_000)), 
-        'io':    (Tasks.io_task,    dict(n_batches=8, n_items=200)),
-        'numpy': (Tasks.numpy_task, dict(n_batches=8, n_items=1500)),
+        'cpu':   (Tasks.cpu_task,   dict(n_batches=24, n_items=500_000)), 
+        'io':    (Tasks.io_task,    dict(n_batches=24, n_items=50)),
+        'numpy': (Tasks.numpy_task, dict(n_batches=16, n_items=2000)),
     }
     executors = {
         'serial': Executors.serial, 
