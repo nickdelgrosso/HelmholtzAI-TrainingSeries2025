@@ -9,6 +9,7 @@ from uuid import uuid4
 
 
 import numpy as np
+import psutil
 
 
 class Runners(SimpleNamespace):
@@ -16,10 +17,25 @@ class Runners(SimpleNamespace):
 
     @staticmethod
     def run(executor, task, *args, **kwargs):
+        proc = psutil.Process()
+        start_io = proc.io_counters()
+        proc.cpu_percent(interval=None)  # initialize cpu utilization interval
         start_wall = time.perf_counter()  # measure wall time
         process = executor(task, *args, **kwargs)
         wall = time.perf_counter() - start_wall
-        return {'wall': wall, 'process': process}
+        cpu_percent = proc.cpu_percent(interval=None)
+        end_io = proc.io_counters()
+        return {
+            'wall': wall, 
+            'process': process, 
+            'cpu_percent': cpu_percent,
+            'io_read_count': end_io.read_count - start_io.read_count,
+            'io_read_bytes': end_io.read_bytes - start_io.read_bytes,
+            'io_read_rate': (end_io.read_bytes - start_io.read_bytes) / wall,
+            'io_write_count': end_io.write_count - start_io.write_count,
+            'io_write_bytes': end_io.write_bytes - start_io.write_bytes,
+            'io_write_rate': (end_io.write_bytes - start_io.write_bytes) / wall,
+        }
 
 
 
@@ -105,9 +121,9 @@ if __name__ == "__main__":
         'multiprocessing': Executors.multiprocess,
     }
     
-    times = Runners.run( executors[args.execution], tasks[args.task][0], **tasks[args.task][1])
+    measurements = Runners.run( executors[args.execution], tasks[args.task][0], **tasks[args.task][1])
     
-    result = {'task': args.task, 'execution': args.execution, 'wall': round(times['wall'], 3), 'process': round(times['process'], 3)}
+    result = {'task': args.task, 'execution': args.execution} | measurements
     result["OMP_NUM_THREADS"] = os.environ.get("OMP_NUM_THREADS", "Not Set")
     result["MKL_NUM_THREADS"] = os.environ.get("MKL_NUM_THREADS", "Not Set")
     result["OPENBLAS_NUM_THREADS"] = os.environ.get("OPENBLAS_NUM_THREADS", "Not Set")
