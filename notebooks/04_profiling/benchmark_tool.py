@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from functools import partial
 import json
 import os
+import threading
 import psutil
 import subprocess
 import sys
@@ -90,7 +91,7 @@ def run_benchmark(
         'effective_cpu_utilization': round(process_time / wall_time, 2),
     }
 
-    # Measure Memory and IO
+    # Measure IO
     proc = psutil.Process()
     start_io = proc.io_counters()
     proc.cpu_percent(interval=None)  # initialize cpu utilization interval
@@ -107,10 +108,37 @@ def run_benchmark(
         'write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall_time, 6),
     }
 
+    # Measure Memory (Sampling Method)
+    sampling_interval_secs = .01
+    proc = psutil.Process()
+    stop = threading.Event()
+    peak_rss = 0
+    def sample_memory_use():
+        nonlocal peak_rss
+        while not stop.is_set():
+            try:
+                peak_rss = max(peak_rss, proc.memory_info().rss)
+            except psutil.Error:
+                pass
+            time.sleep(sampling_interval_secs)
+    t = threading.Thread(target=sample_memory_use, daemon=True)
+    t.start()
+    try:
+        task()
+    finally:
+        stop.set()
+        t.join()
+
+    memory_metrics = {
+        'peak_observed_rss_mb': round(peak_rss / (1024 ** 2), 2)
+    }
+
+
     all_metrics = {
         'id': uuid4().hex[:8],
         'time': time_metrics,
         'io': io_metrics,
+        'memory': memory_metrics,
     }
 
     return all_metrics
