@@ -1,5 +1,5 @@
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from dataclasses import dataclass
 import json
@@ -9,58 +9,37 @@ import subprocess
 import sys
 import time
 from types import SimpleNamespace
-from typing import Any, Callable, NewType, Optional, Protocol, ParamSpec
+from typing import Any, Callable, Literal, NewType, Optional, Protocol, ParamSpec, Type
 from uuid import uuid4
 
 import numpy as np
 import psutil
 
+JSON = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
 P = ParamSpec("P")
 
-class Executor(Protocol):
-    n_repeats: int
+class Executor(ABC):
 
-    def __call__(self, task: Callable[P, object], *args: P.args, **kwargs: P.kwargs):
-        raise NotImplementedError()
+    def __init__(self, n_repeats: int = 1) -> None:
+        self.n_repeats = n_repeats
 
-
-
-def run_benchmark(task: Callable, executor: Executor, *args, **kwargs):
-    """Runs code and measures elapsed time."""
-    proc = psutil.Process()
-    start_io = proc.io_counters()
-    proc.cpu_percent(interval=None)  # initialize cpu utilization interval
-    start_wall = time.perf_counter()  # measure wall time
-    process = executor(task, *args, **kwargs)
-    wall = time.perf_counter() - start_wall
-    cpu_percent = proc.cpu_percent(interval=None)
-    end_io = proc.io_counters()
-    return {
-        'wall': wall, 
-        'process': process, 
-        'cpu_percent': cpu_percent,
-        'io_read_count': end_io.read_count - start_io.read_count,
-        'io_read_bytes': end_io.read_bytes - start_io.read_bytes,
-        'io_read_rate': (end_io.read_bytes - start_io.read_bytes) / wall,
-        'io_write_count': end_io.write_count - start_io.write_count,
-        'io_write_bytes': end_io.write_bytes - start_io.write_bytes,
-        'io_write_rate': (end_io.write_bytes - start_io.write_bytes) / wall,
-    }
-
-
-JSON = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
-
+    @abstractmethod
+    def __call__(self, task: Callable[P, object], *args: P.args, **kwargs: P.kwargs): ...
+    
 
 @dataclass
-class Serial:
+class Serial(Executor):
     n_repeats: int
 
-    def __call__(self, task: Callable[P, object], *args: P.args, **kwargs: P.kwargs) -> Any:
+    def __call__(self, task: Callable[P, object], *args: P.args, **kwargs: P.kwargs) -> float:
         start_cpu = time.process_time()
         for _ in range(self.n_repeats):
             task(*args, **kwargs) 
         cpu_time = time.process_time() - start_cpu
         return cpu_time
+
+
+
 
 
 class Executors(SimpleNamespace):
@@ -96,47 +75,66 @@ class Executors(SimpleNamespace):
 
 
 
+def run_benchmark(
+        task: Callable, 
+        task_params: Optional[dict[str, Any]] = None, 
+        n_repeats: int = 1, 
+        execution_mode: Literal['serial'] = 'serial',
+    ) ->  dict[str, "JSON"]:
 
-class Tasks(SimpleNamespace):
-
-    @staticmethod
-    def cpu_task(n):
-        """A CPU-Bound task--no real memory usage, no waiting."""
-        start_cpu = time.process_time()
-        x = 0
-        for i in range(n):
-            x += math.sqrt(i * 10 + 5.2)
-        return time.process_time() - start_cpu
-
-    @staticmethod
-    def io_task(n):
-        """An IO-Bound task--just waiting."""
-        start_cpu = time.process_time()
-        for i in range(n):
-            time.sleep(0.000001)
-        return time.process_time() - start_cpu
-
-    @staticmethod
-    def numpy_task(n):
-        """A CPU-Bound task done out-of-Python."""
-        start_cpu = time.process_time()
-        a = np.random.rand(n, n)
-        b = np.random.rand(n, n)
-        np.matmul(a, b)
-        return time.process_time() - start_cpu
+    """Runs code and measures elapsed time."""
+    params = task_params if task_params is not None else {}
+    executor_types: dict[str, Type[Executor]] = {
+        'serial': Serial,
+    }
+    executor = executor_types[execution_mode](n_repeats=n_repeats)
+    proc = psutil.Process()
+    start_io = proc.io_counters()
+    proc.cpu_percent(interval=None)  # initialize cpu utilization interval
+    start_wall = time.perf_counter()  # measure wall time
+    process = executor(task, **params)
+    wall = time.perf_counter() - start_wall
+    cpu_percent = proc.cpu_percent(interval=None)
+    end_io = proc.io_counters()
+    return {
+        'wall': round(wall, 4),   # if the time differences are sub-millisecond, don't trust it.
+        'process': round(process, 4), # if the time differences are sub-millisecond, don't trust it.
+        'cpu_percent': round(cpu_percent, 1),
+        'io_read_count': end_io.read_count - start_io.read_count,
+        'io_read_bytes': end_io.read_bytes - start_io.read_bytes,
+        'io_read_rate': round((end_io.read_bytes - start_io.read_bytes) / wall, 6),
+        'io_write_count': end_io.write_count - start_io.write_count,
+        'io_write_bytes': end_io.write_bytes - start_io.write_bytes,
+        'io_write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall, 6),
+    }
 
 
+
+"""
+Special Case: Making things work for Seperate Environments Requires a Subprocess.  
+
+The code below allows use of `run_benchmark()` through a CLI, (entry point for subprocessing),
+which itself can be called from `run_benchmark_as_subprocess()` (entry point if using from python).
+
+This is a bit convoluted, I know, but it makes it easy to experiment with environment variables, 
+needed for learning about performance tweaking of numpy and such libraries.
+
+For this to work, the function to be benchmarked needs to be in an importable module.
+If calling from a notebook, you can use the `%%writefile` cell magick to make it without leaving the module.
+"""
 
 def run_benchmark_as_subprocess(
         entry_point: str, 
         params: dict[str, JSON] | None = None,
+        n_repeats: int = 1,
+        execution_mode: Literal['serial'] = 'serial',
         env: Optional[dict[str, str]] = None,
         python: str = sys.executable,
     ):
     
     params_json = json.dumps(params) if params else None
     out = subprocess.run(
-        [python, __file__, entry_point],
+        [python, __file__, entry_point, '--nreps', str(n_repeats), '--execution_mode', execution_mode],
         input=params_json,
         env=os.environ | (env if env else {}),
         check=False, text=True, capture_output=True,
@@ -145,16 +143,20 @@ def run_benchmark_as_subprocess(
         print(out.stderr)
         raise RuntimeError()
     
-    return out.stdout
+    output = json.loads(out.stdout)
+    return output
 
 
-def cli():
+def cli(args=None):
     import argparse
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("entrypoint", help='The import path to the function to be run (e.g. "package.module:fun")')
     parser.add_argument("--params", help="JSON params for the entrypoint, or '-' to read from stdin", default="{}")
-    args = parser.parse_args()
+    parser.add_argument("--nreps", default=1, type=int, help="how many repetitions to run the task")
+    parser.add_argument("--execution_mode", default='serial', choices=['serial'], help="how to batch up the work of the repetitions")
+    parser.add_argument("--pretty", action="store_true", help="pretty-prints the JSON output")
+    args = parser.parse_args(args=args)
 
     ## Validate Entrypoint
     import importlib
@@ -191,10 +193,14 @@ def cli():
         parser.error(f"Invalid parameters for {task_function.__name__}: {json_params}")
     
     ## Run the benchmark!
-    run_benchmark(
+    results = run_benchmark(
         task=task_function, 
-        executor=Serial(n_repeats=10),
+        execution_mode=args.execution_mode,
+        n_repeats=args.nreps,
     )
+    result_json = json.dumps(results, indent=3 if args.pretty else None)
+    print(result_json)
+    
     
     
     
@@ -202,20 +208,7 @@ def cli():
 
 
 if __name__ == "__main__":
-
-    
-    cli()
-    
-
-    # measurements = Runners.run( executors[args.execution], tasks[args.task][0], **tasks[args.task][1])
-    
-    # result = {'task': args.task, 'execution': args.execution} | measurements
-    # result["OMP_NUM_THREADS"] = os.environ.get("OMP_NUM_THREADS", "Not Set")
-    # result["MKL_NUM_THREADS"] = os.environ.get("MKL_NUM_THREADS", "Not Set")
-    # result["OPENBLAS_NUM_THREADS"] = os.environ.get("OPENBLAS_NUM_THREADS", "Not Set")
-    # result['id'] = uuid4().hex[:8]
-    
-    # print(json.dumps(result))
+    cli()    
 
 
 
