@@ -1,1 +1,0 @@
-[{"task": "cpu", "execution": "serial", "wall": 1.0865839000034612, "process": 1.0625, "cpu_percent": 98.6, "io_read_count": 0, "io_read_bytes": 0, "io_read_rate": 0.0, "io_write_count": 0, "io_write_bytes": 0, "io_write_rate": 0.0, "OMP_NUM_THREADS": "1", "MKL_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1", "id": "bd7640e7"}]
