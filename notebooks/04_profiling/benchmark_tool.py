@@ -64,7 +64,7 @@ JSON = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
 
 def run_benchmark(
         task: Callable[[], Any], 
-        executor: BatchExecutor = serial,
+        executor: Optional[BatchExecutor] = None,
         n_repeats: int = 1,
     ) ->  dict[str, "JSON"]:
 
@@ -72,9 +72,18 @@ def run_benchmark(
 
 
     # Measure Timing    
-    start_wall = time.perf_counter()  # measure wall time
-    process = executor(task, n_repeats=n_repeats)
-    wall = time.perf_counter() - start_wall
+    if executor is None:
+        # Single-Run Mode (unreliable for quick functions)
+        start_wall = time.perf_counter()  # measure wall time
+        start_process = time.process_time()  # measure wall time
+        task()
+        process = time.process_time() - start_process
+        wall = time.perf_counter() - start_wall
+    else:
+        # Batch Mode (run many times to get better estimates)
+        start_wall = time.perf_counter()  # measure wall time
+        process = executor(task, n_repeats=n_repeats)
+        wall = time.perf_counter() - start_wall
     
     
     time_metrics = {
