@@ -1,19 +1,16 @@
-
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from dataclasses import dataclass
 import json
-import math
 import os
+import psutil
 import subprocess
 import sys
 import time
 from types import SimpleNamespace
-from typing import Any, Callable, Literal, NewType, Optional, Protocol, ParamSpec, Type
+from typing import Any, Callable, Literal, Optional, ParamSpec, Type
 from uuid import uuid4
 
-import numpy as np
-import psutil
 
 JSON = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
 P = ParamSpec("P")
@@ -97,6 +94,7 @@ def run_benchmark(
     cpu_percent = proc.cpu_percent(interval=None)
     end_io = proc.io_counters()
     return {
+        'run_id': uuid4().hex[:8],
         'wall': round(wall, 4),   # if the time differences are sub-millisecond, don't trust it.
         'process': round(process, 4), # if the time differences are sub-millisecond, don't trust it.
         'cpu_percent': round(cpu_percent, 1),
@@ -133,8 +131,12 @@ def run_benchmark_as_subprocess(
     ):
     
     params_json = json.dumps(params) if params else None
+    args = [python, __file__, entry_point, '--nreps', str(n_repeats), '--execution_mode', execution_mode]
+    if params_json:
+        args.extend(['--params', '-'])
+    
     out = subprocess.run(
-        [python, __file__, entry_point, '--nreps', str(n_repeats), '--execution_mode', execution_mode],
+        args,
         input=params_json,
         env=os.environ | (env if env else {}),
         check=False, text=True, capture_output=True,
@@ -170,14 +172,13 @@ def cli(args=None):
     
     ## Validate Params
     import json
-
+    
     if args.params == '-':
         if sys.stdin.isatty():
-            print("error: expected Expected input on stdin.")
+            print("error: expected Expected input on stdin.", file=sys.stderr)
             parser.error("expected JSON on stdin (when using '--params -')")
         
         json_params = sys.stdin.read()
-        print('stdin:', json_params)
     else:
         json_params = args.params
 
@@ -190,11 +191,14 @@ def cli(args=None):
     try:
         sig.bind(**params)
     except TypeError as e:
-        parser.error(f"Invalid parameters for {task_function.__name__}: {json_params}")
+        parser.error(f"Invalid parameters for {task_function.__name__}: {json_params},\n\n{str(e)}")
     
+
+    print()
     ## Run the benchmark!
     results = run_benchmark(
         task=task_function, 
+        task_params=params,
         execution_mode=args.execution_mode,
         n_repeats=args.nreps,
     )
