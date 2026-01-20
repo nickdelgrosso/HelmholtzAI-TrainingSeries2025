@@ -53,7 +53,7 @@ def multiprocessing(task: Callable, n_repeats: int):
 
 executors: dict[str, BatchExecutor] = {
     'serial': serial,
-    'threaded': threaded,
+    'threading': threaded,
     'multiprocessing': multiprocessing,
 }
 
@@ -69,35 +69,44 @@ def run_benchmark(
     ) ->  dict[str, "JSON"]:
 
     """Runs code and measures elapsed time."""
-    if executor is multiprocessing:
-        raise ValueError("multiproccesing requires subprocess support. Use run_benchmark_as_subprocess() instead.")
-    proc = psutil.Process()
-    start_io = proc.io_counters()
-    proc.cpu_percent(interval=None)  # initialize cpu utilization interval
+
+
+    # Measure Timing    
     start_wall = time.perf_counter()  # measure wall time
     process = executor(task, n_repeats=n_repeats)
     wall = time.perf_counter() - start_wall
-    cpu_percent = proc.cpu_percent(interval=None)
-    end_io = proc.io_counters()
-
-    metrics = {
-        'id': uuid4().hex[:8],
-        'time': {
-            'wall': round(wall, 4),   # if the time differences are sub-millisecond, don't trust it.
-            'process': round(process, 4), # if the time differences are sub-millisecond, don't trust it.
-            'cpu_percent': round(cpu_percent, 1),
-        },
-        'io': {
-            'read_count': end_io.read_count - start_io.read_count,
-            'read_bytes': end_io.read_bytes - start_io.read_bytes,
-            'read_rate': round((end_io.read_bytes - start_io.read_bytes) / wall, 6),
-            'write_count': end_io.write_count - start_io.write_count,
-            'write_bytes': end_io.write_bytes - start_io.write_bytes,
-            'write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall, 6),
-        },
+    
+    
+    time_metrics = {
+        'wall': round(wall, 4),   # if the time differences are sub-millisecond, don't trust it.
+        'process': round(process, 4), # if the time differences are sub-millisecond, don't trust it.
+        'effective_cpu_utilization': round(process / wall, 2),
     }
 
-    return metrics
+    # Measure Memory and IO
+    proc = psutil.Process()
+    start_io = proc.io_counters()
+    proc.cpu_percent(interval=None)  # initialize cpu utilization interval
+    task()
+    end_io = proc.io_counters()
+
+
+    io_metrics = {
+        'read_count': end_io.read_count - start_io.read_count,
+        'read_bytes': end_io.read_bytes - start_io.read_bytes,
+        'read_rate': round((end_io.read_bytes - start_io.read_bytes) / wall, 6),
+        'write_count': end_io.write_count - start_io.write_count,
+        'write_bytes': end_io.write_bytes - start_io.write_bytes,
+        'write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall, 6),
+    }
+
+    all_metrics = {
+        'id': uuid4().hex[:8],
+        'time': time_metrics,
+        'io': io_metrics,
+    }
+
+    return all_metrics
 
 
 
