@@ -77,19 +77,19 @@ def run_benchmark(
         start_wall = time.perf_counter()  # measure wall time
         start_process = time.process_time()  # measure wall time
         task()
-        process = time.process_time() - start_process
-        wall = time.perf_counter() - start_wall
+        process_time = time.process_time() - start_process
+        wall_time = time.perf_counter() - start_wall
     else:
         # Batch Mode (run many times to get better estimates)
         start_wall = time.perf_counter()  # measure wall time
-        process = executor(task, n_repeats=n_repeats)
-        wall = time.perf_counter() - start_wall
+        process_time = executor(task, n_repeats=n_repeats)
+        wall_time = time.perf_counter() - start_wall
     
     
     time_metrics = {
-        'wall': round(wall, 4),   # if the time differences are sub-millisecond, don't trust it.
-        'process': round(process, 4), # if the time differences are sub-millisecond, don't trust it.
-        'effective_cpu_utilization': round(process / wall, 2),
+        'wall': round(wall_time, 4),   # if the time differences are sub-millisecond, don't trust it.
+        'process': round(process_time, 4), # if the time differences are sub-millisecond, don't trust it.
+        'effective_cpu_utilization': round(process_time / wall_time, 2),
     }
 
     # Measure Memory and IO
@@ -103,10 +103,10 @@ def run_benchmark(
     io_metrics = {
         'read_count': end_io.read_count - start_io.read_count,
         'read_bytes': end_io.read_bytes - start_io.read_bytes,
-        'read_rate': round((end_io.read_bytes - start_io.read_bytes) / wall, 6),
+        'read_rate': round((end_io.read_bytes - start_io.read_bytes) / wall_time, 6),
         'write_count': end_io.write_count - start_io.write_count,
         'write_bytes': end_io.write_bytes - start_io.write_bytes,
-        'write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall, 6),
+        'write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall_time, 6),
     }
 
     all_metrics = {
