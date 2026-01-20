@@ -79,18 +79,25 @@ def run_benchmark(
     wall = time.perf_counter() - start_wall
     cpu_percent = proc.cpu_percent(interval=None)
     end_io = proc.io_counters()
-    return {
-        'run_id': uuid4().hex[:8],
-        'wall': round(wall, 4),   # if the time differences are sub-millisecond, don't trust it.
-        'process': round(process, 4), # if the time differences are sub-millisecond, don't trust it.
-        'cpu_percent': round(cpu_percent, 1),
-        'io_read_count': end_io.read_count - start_io.read_count,
-        'io_read_bytes': end_io.read_bytes - start_io.read_bytes,
-        'io_read_rate': round((end_io.read_bytes - start_io.read_bytes) / wall, 6),
-        'io_write_count': end_io.write_count - start_io.write_count,
-        'io_write_bytes': end_io.write_bytes - start_io.write_bytes,
-        'io_write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall, 6),
+
+    metrics = {
+        'id': uuid4().hex[:8],
+        'time': {
+            'wall': round(wall, 4),   # if the time differences are sub-millisecond, don't trust it.
+            'process': round(process, 4), # if the time differences are sub-millisecond, don't trust it.
+            'cpu_percent': round(cpu_percent, 1),
+        },
+        'io': {
+            'read_count': end_io.read_count - start_io.read_count,
+            'read_bytes': end_io.read_bytes - start_io.read_bytes,
+            'read_rate': round((end_io.read_bytes - start_io.read_bytes) / wall, 6),
+            'write_count': end_io.write_count - start_io.write_count,
+            'write_bytes': end_io.write_bytes - start_io.write_bytes,
+            'write_rate': round((end_io.write_bytes - start_io.write_bytes) / wall, 6),
+        },
     }
+
+    return metrics
 
 
 
