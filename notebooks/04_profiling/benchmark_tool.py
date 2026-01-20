@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from functools import partial
 import json
@@ -16,7 +15,6 @@ from uuid import uuid4
 
 class BatchExecutor(Protocol):
 
-    @abstractmethod
     def __call__(self, task: Callable[[], Any], n_repeats: int) -> float: ...
     
 
