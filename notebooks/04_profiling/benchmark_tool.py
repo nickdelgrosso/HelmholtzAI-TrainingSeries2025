@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from dataclasses import dataclass
+from functools import partial
 import json
 import os
 import psutil
@@ -8,88 +9,71 @@ import subprocess
 import sys
 import time
 from types import SimpleNamespace
-from typing import Any, Callable, Literal, Optional, ParamSpec, Type
+from typing import Any, Callable, Literal, Optional, ParamSpec, Protocol, Type
 from uuid import uuid4
 
 
-JSON = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
-P = ParamSpec("P")
+## Batch Executors
 
-class Executor(ABC):
-
-    def __init__(self, n_repeats: int = 1) -> None:
-        self.n_repeats = n_repeats
+class BatchExecutor(Protocol):
 
     @abstractmethod
-    def __call__(self, task: Callable[P, object], *args: P.args, **kwargs: P.kwargs): ...
+    def __call__(self, task: Callable[[], Any], n_repeats: int) -> float: ...
     
 
-@dataclass
-class Serial(Executor):
-    n_repeats: int
 
-    def __call__(self, task: Callable[P, object], *args: P.args, **kwargs: P.kwargs) -> float:
+def serial(task: Callable, n_repeats: int): 
+    "1 CPU, One at a time."
+    start_cpu = time.process_time()
+    _ = [task() for _ in range(n_repeats)]
+    cpu_time = time.process_time() - start_cpu
+    return cpu_time
+
+        
+def threaded(task: Callable, n_repeats: int):
+    "Using Python Threads."
+    with ThreadPoolExecutor(max_workers=8) as ex:
         start_cpu = time.process_time()
-        for _ in range(self.n_repeats):
-            task(*args, **kwargs) 
-        cpu_time = time.process_time() - start_cpu
-        return cpu_time
+        futures = [ex.submit(task) for _ in range(n_repeats)]
+        _ = [future.result() for future in futures]  # not using these, but still collecting in case of raised exceptions.
+    cpu_time = time.process_time() - start_cpu
+    return cpu_time
 
 
+def multiprocessing(task: Callable, n_repeats: int):
+    "Using Multiprocessing."
+    timed_task = partial(serial, task, n_repeats=1)
+    with ProcessPoolExecutor(max_workers=4) as ex:
+        futures = [ex.submit(timed_task) for _ in range(n_repeats)]
+        child_process_times = [future.result() for future in futures]
+    return sum(child_process_times)
 
 
-
-class Executors(SimpleNamespace):
-    
-    @staticmethod
-    def serial(task, n_batches, n_items):
-        "1 CPU, One at a time."
-        start_cpu = time.process_time()
-        for _ in range(n_batches):
-            task(n=n_items)  # don't need process time of task, it's roughly equivalent to the total process time here.
-        cpu_time = time.process_time() - start_cpu
-        return cpu_time
-            
-    @staticmethod
-    def threaded(task, n_batches, n_items):
-        "Using Python Threads."
-        start_cpu = time.process_time()
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            list(ex.map(task, [n_items] * n_batches ))  # Don't use process time from individual threads; not meaningful.
-        cpu_time = time.process_time() - start_cpu
-        return cpu_time
-
-    @staticmethod
-    def multiprocess(task, n_batches, n_items):
-        "Using Multiprocessing."
-        host_cpu_start_time = time.process_time()
-        with ProcessPoolExecutor(max_workers=4) as ex:
-            cpu_times = list(ex.map(task, [n_items] * n_batches ))  # Need the individual process times.
-
-        host_cpu_time = time.process_time() - host_cpu_start_time
-        return sum(cpu_times) + host_cpu_time
+executors: dict[str, BatchExecutor] = {
+    'serial': serial,
+    'threaded': threaded,
+    'multiprocessing': multiprocessing,
+}
 
 
+## Runners
 
+JSON = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
 
 def run_benchmark(
-        task: Callable, 
-        task_params: Optional[dict[str, Any]] = None, 
-        n_repeats: int = 1, 
-        execution_mode: Literal['serial'] = 'serial',
+        task: Callable[[], Any], 
+        executor: BatchExecutor = serial,
+        n_repeats: int = 1,
     ) ->  dict[str, "JSON"]:
 
     """Runs code and measures elapsed time."""
-    params = task_params if task_params is not None else {}
-    executor_types: dict[str, Type[Executor]] = {
-        'serial': Serial,
-    }
-    executor = executor_types[execution_mode](n_repeats=n_repeats)
+    if executor is multiprocessing:
+        raise ValueError("multiproccesing requires subprocess support. Use run_benchmark_as_subprocess() instead.")
     proc = psutil.Process()
     start_io = proc.io_counters()
     proc.cpu_percent(interval=None)  # initialize cpu utilization interval
     start_wall = time.perf_counter()  # measure wall time
-    process = executor(task, **params)
+    process = executor(task, n_repeats=n_repeats)
     wall = time.perf_counter() - start_wall
     cpu_percent = proc.cpu_percent(interval=None)
     end_io = proc.io_counters()
@@ -109,7 +93,7 @@ def run_benchmark(
 
 
 """
-Special Case: Making things work for Seperate Environments Requires a Subprocess.  
+Special Case: Making things work for New Environments Requires the benchmark is run in a seperate process.
 
 The code below allows use of `run_benchmark()` through a CLI, (entry point for subprocessing),
 which itself can be called from `run_benchmark_as_subprocess()` (entry point if using from python).
@@ -125,13 +109,13 @@ def run_benchmark_as_subprocess(
         entry_point: str, 
         params: dict[str, JSON] | None = None,
         n_repeats: int = 1,
-        execution_mode: Literal['serial'] = 'serial',
+        executor_entry_point: str = 'serial',
         env: Optional[dict[str, str]] = None,
         python: str = sys.executable,
     ):
     
     params_json = json.dumps(params) if params else None
-    args = [python, __file__, entry_point, '--nreps', str(n_repeats), '--execution_mode', execution_mode]
+    args = [python, __file__, entry_point, '--nreps', str(n_repeats), '--executor', executor_entry_point]
     if params_json:
         args.extend(['--params', '-'])
     
@@ -150,13 +134,15 @@ def run_benchmark_as_subprocess(
 
 
 def cli(args=None):
+
+    
     import argparse
 
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("entrypoint", help='The import path to the function to be run (e.g. "package.module:fun")')
     parser.add_argument("--params", help="JSON params for the entrypoint, or '-' to read from stdin", default="{}")
     parser.add_argument("--nreps", default=1, type=int, help="how many repetitions to run the task")
-    parser.add_argument("--execution_mode", default='serial', choices=['serial'], help="how to batch up the work of the repetitions")
+    parser.add_argument("--executor", default='serial', help=f"The path to the batch executor function, or {set(executors.keys())}")
     parser.add_argument("--pretty", action="store_true", help="pretty-prints the JSON output")
     args = parser.parse_args(args=args)
 
@@ -184,6 +170,7 @@ def cli(args=None):
 
     
     params = json.loads(json_params)
+    task = partial(task_function, **params)
 
     ## Validate Params go with Entry Point, using type signature
     import inspect
@@ -194,12 +181,21 @@ def cli(args=None):
         parser.error(f"Invalid parameters for {task_function.__name__}: {json_params},\n\n{str(e)}")
     
 
-    print()
+    ## Get Batch Executor
+    executor = executors.get(args.executor, None)
+    if executor is None:
+        try:
+            module_path, function_name = args.executor.split(":", 1)
+        except ValueError:
+            parser.error(f"Invalid executor format.  Expected 'package.module:function' or {set(executors.keys())}")
+        module = importlib.import_module(module_path)
+        executor = getattr(module, function_name)
+
     ## Run the benchmark!
+    
     results = run_benchmark(
-        task=task_function, 
-        task_params=params,
-        execution_mode=args.execution_mode,
+        task=task, 
+        executor=executor,
         n_repeats=args.nreps,
     )
     result_json = json.dumps(results, indent=3 if args.pretty else None)
