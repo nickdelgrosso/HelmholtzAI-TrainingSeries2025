@@ -3,12 +3,35 @@ from functools import partial
 import json
 import os
 import threading
+from warnings import warn
 import psutil
 import subprocess
 import sys
 import time
 from typing import Any, Callable, Optional, Protocol
 from uuid import uuid4
+
+## GPU Metrics
+def has_nvml() -> bool:
+    """Returns True, if NVIDIA Management Library is installed and works fine"""
+    try: 
+        import pynvml
+        pynvml.nvmlInit()
+        pynvml.nvmlShutdown()
+        return True
+    except Exception:
+        return False
+    
+
+def gpu_synchronize():
+    """Returns True, if PyTorch could call a blocking synchronization command on the GPU."""
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+            return True
+    except ImportError:
+        pass
 
 
 
@@ -59,13 +82,15 @@ executors: dict[str, BatchExecutor] = {
 
 ## Runners
 
-JSON = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
+JSONable = None | bool | int | float | str | list["JSONable"] | dict[str, "JSONable"]
 
 def run_benchmark(
         task: Callable[[], Any], 
         executor: Optional[BatchExecutor] = None,
         n_repeats: int = 1,
-    ) ->  dict[str, "JSON"]:
+        run_gpu_metrics: bool = False,
+        gpu_device_index: int = 0
+    ) ->  dict[str, "JSONable"]:
 
     """Runs code and measures elapsed time."""
 
@@ -109,12 +134,12 @@ def run_benchmark(
     }
 
     # Measure Memory (Sampling Method)
-    sampling_interval_secs = .01
     proc = psutil.Process()
     stop = threading.Event()
     peak_rss = 0
     def sample_memory_use():
         nonlocal peak_rss
+        sampling_interval_secs = .01
         while not stop.is_set():
             try:
                 peak_rss = max(peak_rss, proc.memory_info().rss)
@@ -133,12 +158,76 @@ def run_benchmark(
         'peak_observed_rss_mb': round(peak_rss / (1024 ** 2), 2)
     }
 
+    # Measure GPU 
+    if run_gpu_metrics:
+        if has_nvml():
+            import pynvml
+
+            pynvml.nvmlInit()
+            device_handle = pynvml.nvmlDeviceGetHandleByIndex(gpu_device_index)
+
+            
+            stop = threading.Event()
+            gpu_peak_memory = 0
+            gpu_util_samples = []
+
+            def sample_gpu():
+                nonlocal gpu_peak_memory
+                handle = device_handle
+                gpu_sampling_interval_secs = .01
+                while not stop.is_set():
+                    try:
+                        gpu_memory = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                        gpu_utilization_rates = pynvml.nvmlDeviceGetUtilizationRates(handle)
+                        gpu_peak_memory = max(gpu_peak_memory, gpu_memory.used)
+                        gpu_util_samples.append(gpu_utilization_rates.gpu)
+                    except pynvml.NVMLError:
+                        pass
+                    time.sleep(gpu_sampling_interval_secs)
+
+            t_gpu = threading.Thread(target=sample_gpu, daemon=True)
+            t.start()
+
+            try:
+                gpu_synchronize()
+                start = time.perf_counter()
+                task()
+                gpu_synchronize()
+                gpu_wall_time = time.perf_counter() - start
+            finally:
+                stop.set()
+                t.join()
+                pynvml.nvmlShutdown()
+
+            
+            gpu_metrics = {
+                'requested': True,
+                'backend': 'nvidia',
+                'wall': round(gpu_wall_time),
+                'peak_vram_mb': round(gpu_peak_memory / (1024 ** 2), 2),
+                'avg_gpu_utilization': round(sum(gpu_util_samples) / len(gpu_util_samples), 2) if gpu_util_samples else None,
+            }
+        else:
+            gpu_metrics = {
+                'requested': True,
+                'backend': 'none',
+            }
+
+    else:
+        gpu_metrics = {
+            'requested': False,
+            'backend': 'none',
+        }
+
+            
+
 
     all_metrics = {
         'id': uuid4().hex[:8],
         'time': time_metrics,
         'io': io_metrics,
         'memory': memory_metrics,
+        'gpu': gpu_metrics,
     }
 
     return all_metrics
@@ -160,17 +249,21 @@ If calling from a notebook, you can use the `%%writefile` cell magick to make it
 
 def run_benchmark_as_subprocess(
         entry_point: str, 
-        params: dict[str, JSON] | None = None,
+        params: dict[str, JSONable] | None = None,
         n_repeats: int = 1,
         executor_entry_point: str = 'serial',
         env: Optional[dict[str, str]] = None,
         python: str = sys.executable,
+        run_gpu_metrics: bool = False,
+        gpu_device: int = 0
     ):
     
     params_json = json.dumps(params) if params else None
-    args = [python, __file__, entry_point, '--nreps', str(n_repeats), '--executor', executor_entry_point]
+    args = [python, __file__, entry_point, '--nreps', f"{n_repeats:d}", '--executor', executor_entry_point]
     if params_json:
         args.extend(['--params', '-'])
+    if run_gpu_metrics:
+        args.extend(['--gpu', '--device', f"{gpu_device:d}"])
     
     out = subprocess.run(
         args,
@@ -196,6 +289,8 @@ def cli(args=None):
     parser.add_argument("--params", help="JSON params for the entrypoint, or '-' to read from stdin", default="{}")
     parser.add_argument("--nreps", default=1, type=int, help="how many repetitions to run the task")
     parser.add_argument("--executor", default='serial', help=f"The path to the batch executor function, or {set(executors.keys())}")
+    parser.add_argument("--gpu", action="store_true", help="gather gpu metrics, if possible")
+    parser.add_argument("--device", type=int, default=0, help="gpu device index")
     parser.add_argument("--pretty", action="store_true", help="pretty-prints the JSON output")
     args = parser.parse_args(args=args)
 
@@ -250,6 +345,8 @@ def cli(args=None):
         task=task, 
         executor=executor,
         n_repeats=args.nreps,
+        run_gpu_metrics=args.gpu,
+        gpu_device_index=args.device,
     )
     result_json = json.dumps(results, indent=3 if args.pretty else None)
     print(result_json)
