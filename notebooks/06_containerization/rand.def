@@ -1,0 +1,31 @@
+# Apptainer Definition File.  https://apptainer.org/docs/user/main/definition_files.html
+
+Bootstrap: docker
+From: ghcr.io/prefix-dev/pixi:latest
+
+%files
+    pixi.toml /app/pixi.toml
+    *.py /app/
+
+
+%post
+    cd /app && pixi install
+
+%test
+    echo "--- checking pixi is available ---"
+    pixi --version
+
+    echo "--- checking python is at expected path ---"
+    test -x /app/.pixi/envs/default/bin/python || { echo "FAIL: python not found at /app/.pixi/envs/default/bin/python"; exit 1; }
+
+    echo "--- all tests passed ---"
+
+%runscript
+    exec /app/.pixi/envs/default/bin/python /app/main.py "$@"
+
+
+%help
+    Print a Random Number using Numpy in Python:
+
+        apptainer build rand.sif rand.def
+        apptainer run rand.sif

@@ -1,0 +1,33 @@
+name: apptainer
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container:
+      image: kaczmarj/apptainer
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build SIF
+        run: sudo apptainer build rand.sif rand.def
+
+      - name: Log in to GHCR for ORAS push
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            apptainer registry login \
+              --username "${{ github.actor }}" \
+              --password-stdin \
+              docker://ghcr.io
+
+      - name: Push SIF to GHCR via ORAS
+        run: apptainer push rand.sif oras://ghcr.io/${{ github.repository_owner }}/rand:latest
