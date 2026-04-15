@@ -12,3 +12,4 @@ scratch
 notebooks/03_validation/02_DataValidation_Frameworks_Solutions.ipynb
 deb3
 *.sif
+notebooks/06_containerization/02_build_and_run_apptainers_Solution.ipynb
